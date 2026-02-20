@@ -59,7 +59,7 @@ def signin():
         connection = pymysql.connect(host="localhost", user="root", password="", database="sokogardenonline")
         
         # Create a cursor
-        cursor = connection.cursor()
+        cursor = connection.cursor(pymysql.cursors.DictCursor)
         
         # Structure the sql query that will check whether the  email and password entered are correct
         
@@ -82,7 +82,7 @@ def signin():
             #There must be a user  so we create a variable that will hold  the details of the users fetched from the database
             user=cursor.fetchone()
             # Return message to the front end
-            return jsonify({"message" : "signin route accessed"})
+            return jsonify({"message" : "signin route accessed", "user":user})
 
 
 
