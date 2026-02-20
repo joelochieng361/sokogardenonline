@@ -1,11 +1,15 @@
 # import flask and its components
 from flask import *
+import os
 
 #import the pymyscl module, helps create connecting between python flask and mysql database
 import pymysql
 
 # Create a flask application and give it a name
 app = Flask(__name__)
+
+# Configure the location to where the product images will be saves
+app.config["UPLOAD_FOLDER"] = "static/images"
 
 
 
@@ -18,6 +22,8 @@ def signup():
         email = request.form["email"]
         password = request.form["password"]
         phone = request.form["phone"]
+        
+
         
         # using print function
         #print(username, email, password, phone)
@@ -83,6 +89,50 @@ def signin():
             user=cursor.fetchone()
             # Return message to the front end
             return jsonify({"message" : "signin route accessed", "user":user})
+
+#Below is a route for adding products
+@app.route("/api/add_products", methods = ["POST"])
+def Addproducts():
+    if request.method == "POST":
+        #Extract the data entered from the form
+        product_name = request.form["product_name"]
+        product_description = request.form["product_description"]
+        product_cost = request.form["product_cost"]
+        #product photo shall be fetched from files
+        product_photos = request.files["product_photos"]
+        
+        #Extract filename of product
+        filename = product_photos.filename
+        # by use of the os module (operating system) we can extract the file path where the images is currently saved
+        photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        
+        # print("This is the photo path: ", photo_path)
+        # save the product photo image into the new location
+        product_photos.save(photo_path)
+        
+        #Establish connection to database
+        connection = pymysql.connect(host="localhost", user="root", password="", database="sokogardenonline")
+        
+        #Create a cursor
+        cursor = connection.cursor()
+        
+        #Create an sql query that will insert products to the database
+        
+        sql = "INSERT INTO product_details(product_name,product_description,product_cost,product_photos) VALUES(%s, %s, %s, %s)"
+        
+        #create a turple
+        data = (product_name, product_description, product_cost, filename)
+        
+        #create a cursor to execute the sql
+        cursor.execute(sql, data)
+        
+        connection.commit()
+        
+        return jsonify({"Message":"product added successfully"})
+    
+
+
+
 
 
 
